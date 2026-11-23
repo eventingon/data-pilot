@@ -1,0 +1,37 @@
+[project]
+name = "data-pilot"
+version = "0.1.0"
+description = "Painel de vendas em Python com chat sobre os dados (OpenRouter)"
+requires-python = ">=3.12"
+dependencies = [
+    "pandas>=3.1",
+    "plotly>=7.0",
+    "streamlit>=1.67",
+    "openai>=1.40",
+    "python-dotenv>=1.0",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+exclude = [".venv", "__pycache__", "data"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "C4", "PL", "RUF"]
+ignore = [
+    "N818",  # nomes de exceção em português (ErroFerramenta, ErroAgente)
+]
+
+[tool.ruff.lint.per-file-ignores]
+# Em testes, os valores literais são o contrato esperado.
+"tests/*" = ["PLR2004"]
+# Scripts de linha de comando imprimem progresso e ajustam sys.path.
+"scripts/*" = ["T201", "E402", "PLR2004"]
+# Import tardio do SDK (dependência opcional) é intencional.
+"data_pilot/agente.py" = ["PLC0415"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
