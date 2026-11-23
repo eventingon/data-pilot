@@ -186,6 +186,34 @@ Além do núcleo do desafio, foram incluídas **duas** melhorias da lista:
 Esse desenho é testável sem rede: `tests/test_agente.py` usa um cliente falso
 que simula as respostas do modelo.
 
+## Como testar a escolha das ferramentas
+
+A descrição de cada ferramenta é o único "manual" que o modelo recebe: se ele
+escolhe errado, o problema quase sempre está no texto do `name`/`description`,
+não no Python. Por isso existe um medidor objetivo:
+
+```powershell
+python scripts/avaliar_ferramentas.py            # tabela de acertos por pergunta
+python scripts/avaliar_ferramentas.py --json out/avaliacao.json
+python scripts/avaliar_ferramentas.py --estrito  # sai com código 1 se errar
+```
+
+Ele roda uma lista fixa de perguntas (`CASOS`, em `scripts/avaliar_ferramentas.py`)
+e mostra o que o modelo escolheu de fato:
+
+```
+OK      Qual a receita média por cliente? -> esperada=receita_media_por_cliente obtida=receita_media_por_cliente
+PARCIAL Quais as 3 cidades que mais vendem? -> esperada=top_cidades obtida=top_cidades   # n diferente
+```
+
+`OK` = ferramenta e argumentos corretos; `PARCIAL` = ferramenta certa, argumento
+diferente; `FALHOU` = ferramenta errada; `ERRO` = limite/queda do provedor
+(contado à parte, para não mascarar a qualidade da descrição).
+
+O ciclo de melhoria é: rode, veja qual caso falha, ajuste a `description`
+(inclua as frases que o usuário usaria e a unidade: R$, %, 0–100, "concluídos"),
+rode de novo e compare. Assim a decisão deixa de ser "achismo" e vira medição.
+
 ## Estrutura
 
 ```
@@ -198,12 +226,13 @@ data-pilot/
 │   └── agente.py              # laço de tool calling no OpenRouter
 ├── scripts/
 │   ├── gerar_dados.py         # cria data/raw/sales.csv (sintético)
-│   └── preparar_dados.py      # gera data/processed/vendas_limpo.csv
+│   ├── preparar_dados.py      # gera data/processed/vendas_limpo.csv
+│   └── avaliar_ferramentas.py # mede se o modelo escolhe a ferramenta certa
 ├── data/
 │   ├── raw/sales.csv
 │   └── processed/vendas_limpo.csv
 ├── docs/prints/               # capturas de tela (evidências)
-├── tests/                     # dados, métricas, ferramentas e agente
+├── tests/                     # dados, métricas, ferramentas, agente e avaliação
 ├── .env.example
 ├── .gitignore
 ├── pyproject.toml             # metadados + config de lint/teste
